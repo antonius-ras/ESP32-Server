@@ -1,0 +1,38 @@
+name: SmartDesk CI/CD Pipeline
+
+# สั่งให้ระบบทำงานทุกครั้งที่มีการ Push โค้ดเข้า branch main
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  # 1. ขั้นตอน BUILD
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Simulate Build Process
+        run: |
+          echo "กำลังคอมไพล์โค้ด..."
+          sleep 10  # หน่วงเวลา 10 วินาทีให้เห็นไฟสีเหลือง (PENDING) บนจอ ESP32
+
+  # 2. ขั้นตอน TEST (จะทำงานก็ต่อเมื่อ Build ผ่าน)
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simulate Testing
+        run: |
+          echo "กำลังรัน Unit Test..."
+          sleep 10
+
+  # 3. ขั้นตอน DEPLOY (จะทำงานก็ต่อเมื่อ Test ผ่าน)
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simulate Deployment
+        run: |
+          echo "กำลังนำโค้ดขึ้นเซิร์ฟเวอร์..."
+          exit 1  # จำลองการ Deploy ล้มเหลวเพื่อให้เห็นไฟสีแดง (FAILED) บนจอ ESP32
