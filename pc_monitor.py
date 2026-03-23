@@ -12,8 +12,8 @@ import keyboard
 
 app = Flask(__name__)
 
-GITHUB_REPO = "facebook/react"
-PROJECT_PATH = r"C:\Users\Antonius\Documents\Home-Server"
+GITHUB_REPO = "antonius-ras/ESP32-Server"
+PROJECT_PATH = r"C:\Users\Antonius\Documents\ESP32-Server"
 # ──────────────────────────────────────────
 #  SYSTEM HELPERS (ดึงข้อมูลแยกส่วน)
 # ──────────────────────────────────────────
@@ -131,6 +131,68 @@ def media_control(cmd):
     except Exception as e:
         print(f"[MEDIA ERROR] {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
+    
+@app.route("/dev")
+def dev_dashboard():
+    # --- 1. เช็กสถานะ CI/CD จาก GitHub Actions ---
+    pipeline = {"build": "---", "test": "---", "deploy": "---"}
+    try:
+        url = f"https://api.github.com/repos/{GITHUB_REPO}/actions/runs?per_page=1"
+        resp = requests.get(url, timeout=2).json()
+        
+        if "workflow_runs" in resp and len(resp["workflow_runs"]) > 0:
+            run = resp["workflow_runs"][0]
+            status = run.get("status")
+            conclusion = run.get("conclusion")
+            
+            # จำลองสเตจตามผลลัพธ์ที่ได้จาก GitHub
+            if status != "completed":
+                pipeline["build"] = "PASS"
+                pipeline["test"] = "PENDING"
+                pipeline["deploy"] = "PENDING"
+            elif conclusion == "success":
+                pipeline["build"] = "PASS"
+                pipeline["test"] = "PASS"
+                pipeline["deploy"] = "PASS"
+            else:
+                pipeline["build"] = "FAIL"
+                pipeline["test"] = "FAIL"
+                pipeline["deploy"] = "FAIL"
+    except Exception:
+        pipeline["build"] = "FAIL"
+
+    # --- 2. ดึง Logs จากเครื่อง (Git หรือ Local Services) ---
+    logs = []
+    try:
+        # ท่าที่ 1: ดึง Git Commits ล่าสุด (ให้ฟีล Terminal โค้ดดิ้ง)
+        if os.path.exists(PROJECT_PATH):
+            r = subprocess.run(["git", "log", "-n", "4", "--oneline"], cwd=PROJECT_PATH, capture_output=True, text=True, timeout=2)
+            if r.returncode == 0 and r.stdout:
+                for line in r.stdout.strip().split('\n'):
+                    logs.append(f"> {line[:40]}") 
+        
+        # ท่าที่ 2: ถ้าไม่มี Git ให้เช็กพอร์ต Service สำคัญๆ ในเครื่องแทน
+        if not logs:
+            logs.append("[INFO] Environment Check:")
+            
+            import socket
+            def check_port(port):
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.settimeout(0.1)
+                    return "[PASS]" if s.connect_ex(('127.0.0.1', port)) == 0 else "[WARN]"
+
+            logs.append(f"{check_port(3000)} React Web (Port 3000)")
+            logs.append(f"{check_port(5000)} API Server (Port 5000)")
+            logs.append(f"{check_port(3306)} Database (Port 3306)")
+            
+    except Exception:
+        logs.append(f"[ERROR] Cannot fetch terminal logs")
+
+    return jsonify({
+        "pipeline": pipeline,
+        "logs": logs[:4] # ส่งกลับไป 4 บรรทัดพอดีกับขนาดหน้าจอ ESP32
+    })
+
 # ──────────────────────────────────────────
 #  MAIN ENTRY POINT
 # ──────────────────────────────────────────
