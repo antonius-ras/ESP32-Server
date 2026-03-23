@@ -15,7 +15,7 @@ jobs:
       - name: Simulate Build Process
         run: |
           echo "กำลังคอมไพล์โค้ด..."
-          exit 1  # หน่วงเวลา 10 วินาทีให้เห็นไฟสีเหลือง (PENDING) บนจอ ESP32
+          sleep 10  # หน่วงเวลา 10 วินาทีให้เห็นไฟสีเหลือง (PENDING) บนจอ ESP32
 
   # 2. ขั้นตอน TEST (จะทำงานก็ต่อเมื่อ Build ผ่าน)
   test:
@@ -25,7 +25,7 @@ jobs:
       - name: Simulate Testing
         run: |
           echo "กำลังรัน Unit Test..."
-          exit 1 
+          sleep 10
 
   # 3. ขั้นตอน DEPLOY (จะทำงานก็ต่อเมื่อ Test ผ่าน)
   deploy:
@@ -35,4 +35,4 @@ jobs:
       - name: Simulate Deployment
         run: |
           echo "กำลังนำโค้ดขึ้นเซิร์ฟเวอร์..."
-          exit 1  # จำลองการ Deploy ล้มเหลวเพื่อให้เห็นไฟสีแดง (FAILED) บนจอ ESP32
+          exit 1
