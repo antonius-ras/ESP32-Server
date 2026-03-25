@@ -18,8 +18,8 @@ app = Flask(__name__)
 # ══════════════════════════════════════════
 #  ตั้งค่า DEV WORKSPACE 
 # ══════════════════════════════════════════
-GITHUB_REPO = "antonius-ras/ESP32-Server" 
-PROJECT_PATH = r"C:\Users\Antonius\Documents\ESP32-Server" 
+GITHUB_REPO = "overpeak1976-crypto/Project_Mymood" 
+PROJECT_PATH = r"C:\Users\Antonius\Documents\Project_Mymood"  # เปลี่ยนเป็น path โปรเจกต์ของคุณ (ถ้าใช้ฟีเจอร์ Dev Dashboard)
 # ══════════════════════════════════════════
 discord_state = {
     "channel": "General - Gaming",
@@ -242,7 +242,7 @@ def get_now_playing():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         res = loop.run_until_complete(fetch_media())
-        loop.close()
+        loop.close()    
         return res
     except Exception as e:
         return {"title": "Error", "artist": str(e), "time": "00:00 / 00:00"}
